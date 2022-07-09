@@ -329,8 +329,13 @@ def timeschet(f,K):#запрашивает разницу во времени
 
     return vivod
 def FirstSign():
-    #Api id из https://my.telegram.org/apps
 
+    #Api id из https://my.telegram.org/apps
+    con = sqlite3.connect('online.db')
+    with con:
+        cur = con.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS `online` ( `date` TEXT, `time` TEXT, `VK_online` TEXT, `Telegram_online` TEXT, `VK_output` TEXT, `TG_output` TEXT )")
+        con.commit()
     api_id: int = int(input('Введите api ID'))
 
 
@@ -338,8 +343,7 @@ def FirstSign():
 
     api_hash = int(input('Введите api hash'))
 
-    #  По дефолту стоят значения с моим Api_if и Api_hash
-    uvloop.install()
+    uvloop.install() #ускорение работы pyrogram
     app = Client("my_account", api_id=api_id, api_hash=api_hash)
 
     app.run()
@@ -455,4 +459,4 @@ def VK():
 
 if __name__ == '__main__':
 
-    main()
+    FirstSign()
