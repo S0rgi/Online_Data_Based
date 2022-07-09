@@ -370,9 +370,10 @@ def pars(f):
     for a in str(f):
         s+=a
     s=s.split('"user": {')
+    firstName = ...
+    userName = ...
     for i in s:
-        # вместо ' "first_name": "Соня" ' можно вставить любой параметр , главное не забыть про кавычки , захватывающие всю строку
-        if fina(i,b='"first_name": "Соня"'):
+        if fina(i,b=f'"first_name": "{firstName}"') and fina(i,f'"username": "{userName}"'): # Если нет юзернейма, то просто  if fina(i,b=f'"first_name": "{firstName}"') :
             index = i.find("status")
             a= (i[index:index+80])
         else:
@@ -459,4 +460,4 @@ def VK():
 
 if __name__ == '__main__':
 
-    FirstSign()
+    main()
