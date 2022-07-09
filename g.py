@@ -13,10 +13,9 @@ import sqlite3
 
 def main ():
     uvloop.install()
-    BD()
-    print(f' Текущее время  {(datetime.datetime.now()).strftime("%d-%m-%Y %H:%M")}\n')
-    print (f' Telegram  -  ')
-    conn = sqlite3.connect('/home/sorgi/PycharmProjects/Online_Data_Based/online.db', check_same_thread=False)
+    path = ... #path to database
+    BD(path)
+    conn = sqlite3.connect(path, check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM online;")
     all_results = cursor.fetchall()
@@ -24,22 +23,8 @@ def main ():
     for index,current in enumerate(all_results):
         if current[2]=='Online':
             max = index
-    # if max ==-3:
-    #     VK_output = (all_results[len(all_results)-1])[4]
-
-    VK_output = 'была в сети сегодня в 0:56'
-    function = Vks(VK_output)
-    time_online = f'{(all_results[max + 1])[0]} {(all_results[max + 1])[1]}'
-    time_online = datetime.datetime.strptime(time_online, "%d-%m-%Y %H:%M")
-    if type(function) ==tuple:
-        t1 = (function[0]-time_online)
-        t2 = (time_online-function[1])
-        if ((str(t1))[ 0]!='-') and ((str(t2))[0]!='-'):
-            VK_output = time_online
-        else:
-            VK_output = VK_output
-    elif type(function) !=tuple:
-        print(function)
+    if max ==-3:
+        VK_output = (all_results[len(all_results)-1])[4]
     else:
         try:
             if (all_results[max+1])[4]=='заходила 5 минут назад':
@@ -49,7 +34,8 @@ def main ():
         except IndexError:
             time = f'{(all_results[max ])[0]} {(all_results[max ])[1]}'
             VK_output = f'в сети {time}'
-
+    print(f' Текущее время  {(datetime.datetime.now()).strftime("%d-%m-%Y %H:%M")}\n')
+    print (f' Telegram  -  ')
     try:
         s= (all_results[len(all_results)-1])[5]
         print(f'     {s}')
@@ -95,6 +81,7 @@ def findMonth(s,maxindex):
         if s[maxindex:maxindex+3] == m or s[maxindex+1:maxindex+4] == m:
             month = mon[index]
     return month
+
 def Vks(s):
 
     index = s.find (' назад')
@@ -115,18 +102,20 @@ def Vks(s):
             else:
                 timeleft = str(s[index2-1])
             time = [datetime.datetime.now() - datetime.timedelta(minutes=int(timeleft)-1),datetime.datetime.now() - datetime.timedelta(minutes=int(timeleft)+1)]
-        return time[1],time[0]
+        for index,i in enumerate(time) :
+            time[index]=i.strftime("%H:%M")
+        vivod = f'в промежутке от {time[1]} до {time[0]}'
 
     else     :#Если указано точное время
         if s.find('сегодня')!=-1:
             dayleft=0
             now=datetime.datetime.now()
-            return g(s,now)
+            vivod=g(s,now)
 
 
         elif s.find(' вчера ')!=-1:
             now = datetime.datetime.now() - datetime.timedelta(days=1)
-            return g(s,now)
+            vivod=g(s,now)
 
         elif s.find('в сети')!=-1:
             month= findMonth(s,-11)
@@ -141,7 +130,7 @@ def Vks(s):
             pow = datetime.datetime.strptime(f'{day}-{month}{low[index+3:index+8]} {s[-5::]}','%d-%m-%Y %H:%M')
             timenow=datetime.datetime.strptime(low, "%d-%m-%Y %H:%M")
             timeleft = timenow - pow
-            return timeschet(timeleft,True)
+            vivod = f'{timeschet(timeleft,False)}назад'
 
         else:
             index= s.find('л')
@@ -158,8 +147,9 @@ def Vks(s):
                 low = now.strftime("%d-%m-%Y %H:%M")
                 timenow = datetime.datetime.strptime(low, "%d-%m-%Y %H:%M")
                 timeleft = timenow - time
-                return timeschet(timeleft,True)
-
+                vivod  = f'{timeschet(timeleft,False)}назад'
+                print(vivod)
+    return vivod
 def timeschet(f,K):#запрашивает разницу во времени
 
     f=str(f)
@@ -296,7 +286,6 @@ def timeschet(f,K):#запрашивает разницу во времени
 
 
         else:#если несколько дней и больше 10 часов
-            print((f[index+3]))
             if int(f[index+3])==1 and int(f[index+2])!=1:
                 g= 'час'
             elif 1<int(f[index+3])<5 and int(f[index+2])!=1:
@@ -341,16 +330,14 @@ def timeschet(f,K):#запрашивает разницу во времени
     return vivod
 def FirstSign():
     #Api id из https://my.telegram.org/apps
-    try:
-        api_id: int = int(input('Введите api ID'))
-    except:
-        api_id = 10268925
+
+    api_id: int = int(input('Введите api ID'))
+
 
     # Api hash из https://my.telegram.org/apps
-    try:
-        api_hash = int(input('Введите api hash'))
-    except:
-        api_hash = "ab2124de1c4e2b9a8bca00364e144c3d"
+
+    api_hash = int(input('Введите api hash'))
+
     #  По дефолту стоят значения с моим Api_if и Api_hash
     uvloop.install()
     app = Client("my_account", api_id=api_id, api_hash=api_hash)
@@ -389,8 +376,8 @@ def pars(f):
     a= (a.replace("}",""))
 
     return (a.replace("}","")).replace('\n','')
-def BD():
-    conn = sqlite3.connect('/home/sorgi/PycharmProjects/Online_Data_Based/online.db', check_same_thread=False)
+def BD(path):
+    conn = sqlite3.connect(path, check_same_thread=False)
     cursor = conn.cursor()
 
     def db_table_val(date: str, time: str, VK_online: str, Telegram_online: str,VK_output,TG_output):
@@ -398,12 +385,11 @@ def BD():
                        (date, time, VK_online, Telegram_online,VK_output,TG_output))
         conn.commit()
 
-    #8-962-321-4239
 
-    TARGET = -675385072
+    # chat id  группы
+    TARGET = ...
 
-    # 11 А класс   -756259936
-    # 11 параллель -675385072
+
 
     app = Client("my_account")
 
@@ -449,10 +435,10 @@ def BD():
 
 def VK():
     #просто забить в гугле свой юзер агент
-    UserAgent ="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 OPR/83.0.4254.66"
+    UserAgent =...
     headers = {"User-Agent": UserAgent}
-    # сюда любая ссылка вк
-    valueURL = "https://vk.com/t.sonn"
+    # сюда любая ссылка вк не закрытой страницы
+    valueURL = ...
     full_page = requests.get(valueURL, headers=headers)
 
     soup = BeautifulSoup(full_page.content, 'html.parser')
